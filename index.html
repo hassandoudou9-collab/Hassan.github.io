@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LinkShare - مشاركة الروابط</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary:   #6c63ff;
+      --secondary: #f50057;
+      --bg:        #0f0f1a;
+      --card:      #1a1a2e;
+      --card2:     #16213e;
+      --text:      #e0e0e0;
+      --muted:     #888;
+      --border:    #2a2a4a;
+      --green:     #00e676;
+      --radius:    14px;
+    }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-size: .9rem; font-weight: 600; transition: all .2s; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #a78bfa); color: #fff; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108,99,255,.4); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .hero { text-align: center; padding: 60px 24px 40px; background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,.15) 0%, transparent 70%); }
+    .hero h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 12px; }
+    .hero h1 span { background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { color: var(--muted); font-size: 1.1rem; margin-bottom: 32px; }
+    .search-bar { max-width: 600px; margin: 0 auto; position: relative; }
+    .search-bar input { width: 100%; padding: 14px 50px 14px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 50px; color: var(--text); font-size: 1rem; outline: none; transition: border-color .2s; }
+    .search-bar input:focus { border-color: var(--primary); }
+    .search-bar input::placeholder { color: var(--muted); }
+    .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: var(--muted); }
+    .categories { display: flex; gap: 10px; padding: 20px 24px; overflow-x: auto; justify-content: center; flex-wrap: wrap; max-width: 900px; margin: 0 auto; }
+    .cat-btn { padding: 7px 18px; border-radius: 50px; border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer; font-size: .85rem; transition: all .2s; white-space: nowrap; }
+    .cat-btn.active, .cat-btn:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .stats-bar { display: flex; gap: 20px; justify-content: center; padding: 10px 24px 20px; flex-wrap: wrap; }
+    .stat-item { display: flex; align-items: center; gap: 8px; background: var(--card); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); font-size: .9rem; }
+    .stat-num { color: var(--primary); font-weight: 700; }
+    .main { max-width: 860px; margin: 0 auto; padding: 0 24px 60px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .section-title { font-size: 1.2rem; font-weight: 700; }
+    .sort-select { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; font-size: .85rem; cursor: pointer; outline: none; }
+    .links-grid { display: flex; flex-direction: column; gap: 16px; }
+    .link-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: all .25s; position: relative; overflow: hidden; }
+    .link-card::before { content: ''; position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 0 var(--radius) var(--radius) 0; }
+    .link-card:hover { border-color: var(--primary); transform: translateX(-4px); box-shadow: 0 8px 30px rgba(108,99,255,.15); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+    .card-info { flex: 1; }
+    .card-category { display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: .75rem; font-weight: 600; margin-bottom: 8px; }
+    .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; line-height: 1.4; }
+    .card-title a { color: var(--text); text-decoration: none; transition: color .2s; }
+    .card-title a:hover { color: var(--primary); }
+    .card-desc { color: var(--muted); font-size: .88rem; line-height: 1.5; margin-bottom: 12px; }
+    .card-url { display: flex; align-items: center; gap: 6px; color: var(--primary); font-size: .82rem; margin-bottom: 14px; overflow: hidden; }
+    .card-url span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-favicon { width: 48px; height: 48px; border-radius: 10px; background: var(--card2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .card-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .card-meta { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); }
+    .avatar { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: #fff; }
+    .card-actions { display: flex; gap: 8px; align-items: center; }
+    .action-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: .82rem; transition: all .2s; }
+    .action-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(108,99,255,.1); }
+    .action-btn.liked { border-color: var(--secondary); color: var(--secondary); background: rgba(245,0,87,.1); }
+    .action-btn.saved { border-color: var(--green); color: var(--green); background: rgba(0,230,118,.1); }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; width: 100%; max-width: 540px; animation: slideUp .3s ease; }
+    @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .modal-title { font-size: 1.3rem; font-weight: 800; }
+    .close-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+    .close-btn:hover { border-color: var(--secondary); color: var(--secondary); }
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: .88rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .form-label span { color: var(--secondary); }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: .95rem; outline: none; transition: border-color .2s; font-family: inherit; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--muted); }
+    .form-textarea { resize: vertical; min-height: 90px; }
+    .form-select option { background: var(--card); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .modal-footer { margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; }
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--card); border: 1px solid var(--border); padding: 14px 24px; border-radius: 50px; display: flex; align-items: center; gap: 10px; z-index: 999; transition: transform .4s cubic-bezier(.34,1.56,.64,1); font-size: .9rem; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text); }
+    .cat-tech    { background: rgba(108,99,255,.15); color: #a78bfa; }
+    .cat-news    { background: rgba(245,0,87,.15);   color: #ff4081; }
+    .cat-design  { background: rgba(0,188,212,.15);  color: #4dd0e1; }
+    .cat-science { background: rgba(0,230,118,.15);  color: #69f0ae; }
+    .cat-fun     { background: rgba(255,167,38,.15); color: #ffca28; }
+    .cat-other   { background: rgba(120,120,120,.15);color: #aaa; }
+    .delete-btn { color: #ff4444 !important; border-color: #ff4444 !important; }
+    .delete-btn:hover { background: rgba(255,68,68,.1) !important; }
+    @media(max-width:600px) {
+      .hero h1 { font-size: 1.9rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .card-top { flex-direction: column; }
+      .card-favicon { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🔗 LinkShare</div>
+  <div class="nav-actions">
+    <button class="btn btn-outline" onclick="filterSaved()">⭐ المحفوظة</button>
+    <button class="btn btn-primary" onclick="openModal()">+ إضافة رابط</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>شارك <span>روابطك المفضلة</span> مع الجميع</h1>
+  <p>اكتشف أفضل الروابط من مختلف المجالات وشارك ما تجده مثيراً للاهتمام</p>
+  <div class="search-bar">
+    <input type="text" placeholder="ابحث عن رابط أو موضوع..." id="searchInput" oninput="handleSearch()"/>
+    <span class="search-icon">🔍</span>
+  </div>
+</section>
+
+<div class="categories" id="categories">
+  <button class="cat-btn active" onclick="filterCat('all', this)">🌐 الكل</button>
+  <button class="cat-btn" onclick="filterCat('tech', this)">💻 تقنية</button>
+  <button class="cat-btn" onclick="filterCat('news', this)">📰 أخبار</button>
+  <button class="cat-btn" onclick="filterCat('design', this)">🎨 تصميم</button>
+  <button class="cat-btn" onclick="filterCat('science', this)">🔬 علوم</button>
+  <button class="cat-btn" onclick="filterCat('fun', this)">🎮 ترفيه</button>
+  <button class="cat-btn" onclick="filterCat('other', this)">📦 أخرى</button>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><span>🔗</span> <span>الروابط:</span> <span class="stat-num" id="totalLinks">0</span></div>
+  <div class="stat-item"><span>❤️</span> <span>الإعجابات:</span> <span class="stat-num" id="totalLikes">0</span></div>
+  <div class="stat-item"><span>⭐</span> <span>المحفوظة:</span> <span class="stat-num" id="totalSaved">0</span></div>
+</div>
+
+<main class="main">
+  <div class="section-header">
+    <h2 class="section-title" id="sectionTitle">🔥 أحدث الروابط</h2>
+    <select class="sort-select" onchange="handleSort(this.value)">
+      <option value="newest">الأحدث أولاً</option>
+      <option value="oldest">الأقدم أولاً</option>
+      <option value="mostLiked">الأكثر إعجاباً</option>
+    </select>
+  </div>
+  <div class="links-grid" id="linksGrid"></div>
+</main>
+
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">✨ إضافة رابط جديد</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">الرابط <span>*</span></label>
+      <input class="form-input" type="url" id="inputUrl" placeholder="https://example.com"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">العنوان <span>*</span></label>
+      <input class="form-input" type="text" id="inputTitle" placeholder="عنوان الرابط"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">الوصف</label>
+      <textarea class="form-textarea" id="inputDesc" placeholder="وصف مختصر للرابط..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">التصنيف <span>*</span></label>
+        <select class="form-select" id="inputCat">
+          <option value="tech">💻 تقنية</option>
+          <option value="news">📰 أخبار</option>
+          <option value="design">🎨 تصميم</option>
+          <option value="science">🔬 علوم</option>
+          <option value="fun">🎮 ترفيه</option>
+          <option value="other">📦 أخرى</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">اسمك</label>
+        <input class="form-input" type="text" id="inputUser" placeholder="مجهول"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="addLink()">🚀 نشر الرابط</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg">تم!</span>
+</div>
+
+<script>
+  const catLabels = {
+    tech: '💻 تقنية', news: '📰 أخبار',
+    design: '🎨 تصميم', science: '🔬 علوم',
+    fun: '🎮 ترفيه', other: '📦 أخرى'
+  };
+  const catEmojis = { tech:'💻', news:'📰', design:'🎨', science:'🔬', fun:'🎮', other:'📦' };
+
+  const defaultLinks = [
+    { id:1, title:'GitHub - منصة المطورين العالمية', url:'https://github.com', desc:'أكبر منصة لاستضافة المشاريع البرمجية وتعاون المطورين.', cat:'tech', user:'أحمد', likes:24, saved:false, liked:false, date:new Date(Date.now()-86400000*2).toISOString() },
+    { id:2, title:'Dribbble - إلهام التصميم', url:'https://dribbble.com', desc:'أفضل مكان لاكتشاف أعمال المصممين حول العالم.', cat:'design', user:'سارة', likes:18, saved:false, liked:false, date:new Date(Date.now()-86400000).toISOString() },
+    { id:3, title:'NASA Science - علوم الفضاء', url:'https://science.nasa.gov', desc:'اكتشف آخر أبحاث ناسا حول الفضاء والكون.', cat:'science', user:'محمد', likes:31, saved:false, liked:false, date:new Date(Date.now()-3600000*5).toISOString() },
+    { id:4, title:'MDN Web Docs - مرجع المطورين', url:'https://developer.mozilla.org', desc:'أفضل مرجع للويب: HTML, CSS, JavaScript.', cat:'tech', user:'فيصل', likes:42, saved:false, liked:false, date:new Date(Date.now()-3600000*2).toISOString() },
+    { id:5, title:'YouTube - الترفيه بلا حدود', url:'https://youtube.com', desc:'مشاهدة الفيديوهات والمحتوى الترفيهي والتعليمي.', cat:'fun', user:'نورة', likes:57, saved:false, liked:false, date:new Date(Date.now()-1800000).toISOString() }
+  ];
+
+  let links = [...defaultLinks];
+  let currentCat = 'all';
+  let currentSort = 'newest';
+  let showSavedOnly = false;
+  let searchTerm = '';
+
+  function getDomain(url) {
+    try { return new URL(url).hostname.replace('www.',''); }
+    catch { return url; }
+  }
+
+  function timeAgo(dateStr) {
+    const diff = (Date.now() - new Date(dateStr)) / 1000;
+    if (diff < 60) return 'الآن';
+    if (diff < 3600) return `منذ ${Math.floor(diff/60)} دقيقة`;
+    if (diff < 86400) return `منذ ${Math.floor(diff/3600)} ساعة`;
+    return `منذ ${Math.floor(diff/86400)} يوم`;
+  }
+
+  function getFiltered() {
+    let result = [...links];
+    if (currentCat !== 'all') result = result.filter(l => l.cat === currentCat);
+    if (showSavedOnly) result = result.filter(l => l.saved);
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(l =>
+        l.title.toLowerCase().includes(q) ||
+        (l.desc||'').toLowerCase().includes(q) ||
+        l.url.toLowerCase().includes(q)
+      );
+    }
+    if (currentSort === 'newest') result.sort((a,b) => new Date(b.date)-new Date(a.date));
+    if (currentSort === 'oldest') result.sort((a,b) => new Date(a.date)-new Date(b.date));
+    if (currentSort === 'mostLiked') result.sort((a,b) => b.likes-a.likes);
+    return result;
+  }
+
+  function updateStats() {
+    document.getElementById('totalLinks').textContent = links.length;
+    document.getElementById('totalLikes').textContent = links.reduce((s,l) => s+l.likes, 0);
+    document.getElementById('totalSaved').textContent = links.filter(l => l.saved).length;
+  }
+
+  function render() {
+    const grid = document.getElementById('linksGrid');
+    const filtered = getFiltered();
+    if (!filtered.length) {
+      grid.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><h3>لا توجد روابط</h3><p>جرب تغيير الفلتر أو أضف رابطاً جديداً</p></div>`;
+      return;
+    }
+    grid.innerHTML = filtered.map(link => `
+      <div class="link-card" id="card-${link.id}">
+        <div class="card-top">
+          <div class="card-info">
+            <span class="card-category cat-${link.cat}">${catLabels[link.cat]}</span>
+            <div class="card-title"><a href="${link.url}" target="_blank">${link.title}</a></div>
+            ${link.desc ? `<div class="card-desc">${link.desc}</div>` : ''}
+            <div class="card-url"><span>🔗</span><span>${getDomain(link.url)}</span></div>
+          </div>
+          <div class="card-favicon">${catEmojis[link.cat]}</div>
+        </div>
+        <div class="card-bottom">
+          <div class="card-meta">
+            <div class="avatar">${(link.user||'م')[0]}</div>
+            <span>${link.user||'مجهول'}</span>
+            <span>•</span>
+            <span>${timeAgo(link.date)}</span>
+          </div>
+          <div class="card-actions">
+            <button class="action-btn ${link.liked?'liked':''}" onclick="toggleLike(${link.id})">
+              ${link.liked?'❤️':'🤍'} ${link.likes}
+            </button>
+            <button class="action-btn ${link.saved?'saved':''}" onclick="toggleSave(${link.id})">
+              ${link.saved?'⭐':'☆'} ${link.saved?'محفوظ':'حفظ'}
+            </button>
+            <button class="action-btn delete-btn" onclick="deleteLink(${link.id})">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleLike(id) {
+    const link = links.find(l => l.id === id);
+    if (!link) return;
+    link.liked = !link.liked;
+    link.likes += link.liked ? 1 : -1;
+    render(); updateStats();
+  }
+
+  function toggleSave(id) {
+    const link = links.find(l => l.id === id);
+    if (!link) return;
+    link.saved = !link.saved;
+    showToast(link.saved ? '⭐' : '☆', link.saved ? 'تم الحفظ!' : 'تم إلغاء الحفظ');
+    render(); updateStats();
+  }
+
+  function deleteLink(id) {
+    links = links.filter(l => l.id !== id);
+    showToast('🗑️', 'تم حذف الرابط');
+    render(); updateStats();
+  }
+
+  function filterCat(cat, btn) {
+    currentCat = cat;
+    showSavedOnly = false;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sectionTitle').textContent = cat === 'all' ? '🔥 أحدث الروابط' : catLabels[cat];
+    render();
+  }
+
+  function filterSaved() {
+    showSavedOnly = !showSavedOnly;
+    currentCat = 'all';
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.r
